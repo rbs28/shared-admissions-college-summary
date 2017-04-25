@@ -1,0 +1,18 @@
+{
+  "name": "from-cache",
+  "version": "1.0.0",
+  "description": "fetch College Summaries from cache",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "none"
+  },
+  "dependencies": {
+    "async": "^2.1.4",
+    "aws-scatter-gather": "^3.0.1",
+    "dynamo-doc": "^0.1.1"
+  }
+}

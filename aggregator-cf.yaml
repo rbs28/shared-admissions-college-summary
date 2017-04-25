@@ -1,0 +1,121 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: >
+  Build infrastructure for responders
+  for College Summary API using
+  Scatter-Gather pattern
+
+Parameters: 
+  ConfigStackName:
+    Description: >
+      Name of a CloudFormation Stack that contains
+      configuration for this API
+    Type: "String"
+    MinLength: 1
+    MaxLength: 255
+    AllowedPattern: "[a-zA-Z][-a-zA-Z0-9]*"
+    Default: "SharedAdmissionsCollegeSummaryConfigStack"
+  ApplicationStackName:
+    Description: >
+      Name of a CloudFormation Stack that contains
+      application resource definitions
+    Type: "String"
+    MinLength: 1
+    MaxLength: 255
+    AllowedPattern: "[a-zA-Z][-a-zA-Z0-9]*"
+    Default: "SharedAdmissionsCollegeSummaryApplicationStack"
+  SSLCertificateArn:
+    Description: "arn for ssl certificate for EB app"
+    Type: "String"
+    Default: ""
+  SSLCertificatePath:
+    Description: "Path to uploaded certificate"
+    Type: "String"
+    Default: "/"
+  SSLCertificateName:
+    Description: "Name of uploaded certificate"
+    Type: "String"
+
+Resources: 
+  EBInstanceProfile:
+    Type: "AWS::IAM::InstanceProfile"
+    Properties: 
+      Path: "/cesSharedAdmissions/collegeSummary/"
+      Roles:
+        - Fn::ImportValue:
+            !Sub "${ApplicationStackName}-AggregatorRole"
+  AggregatorApplication:
+    Type: "AWS::ElasticBeanstalk::Application"
+    Properties:
+      Description: Aggregator serving College Summary API using scatter-gather pattern
+  AggregatorApplicationVersion:
+    Type: "AWS::ElasticBeanstalk::ApplicationVersion"
+    Properties:
+      ApplicationName:
+        Ref: AggregatorApplication
+      Description: Aggregator Version serving College Summary API using scatter-gather pattern
+      SourceBundle:
+        S3Bucket:
+          Fn::ImportValue:
+            !Sub "${ConfigStackName}-BucketName"
+        S3Key: "college-aggregator.zip"
+  AggregatorConfigurationTemplate:
+    Type: "AWS::ElasticBeanstalk::ConfigurationTemplate"
+    Properties:
+      ApplicationName:
+        Ref: AggregatorApplication
+      Description: AWS ElasticBeanstalk Configuration Template
+      OptionSettings:
+      - Namespace: "aws:autoscaling:asg"
+        OptionName: "MinSize"
+        Value: '1'
+      - Namespace: "aws:autoscaling:asg"
+        OptionName: "MaxSize"
+        Value: '1'
+      - Namespace: "aws:elasticbeanstalk:environment"
+        OptionName: "EnvironmentType"
+        Value: "LoadBalanced"
+      - Namespace: "aws:autoscaling:launchconfiguration"
+        OptionName: "IamInstanceProfile"
+        Value: !GetAtt EBInstanceProfile.Arn
+      - Namespace: "aws:elasticbeanstalk:application:environment"
+        OptionName: "DEBUG"
+        Value: "*"
+      - Namespace: "aws:elasticbeanstalk:application:environment"
+        OptionName: "API_URL"
+        Value: "https://college-summary.stage.sim.appdev.byu.edu"
+      SolutionStackName: "64bit Amazon Linux 2016.09 v4.0.1 running Node.js"
+  AggregatorEnvironment:
+    Type: "AWS::ElasticBeanstalk::Environment"
+    Properties:
+      ApplicationName:
+        Ref: AggregatorApplication
+      Description: AWS ElasticBeanstalk Aggregator API Environment
+      OptionSettings:
+      - Namespace: "aws:elb:listener"
+        OptionName: "ListenerEnabled"
+        Value: "false"
+      - Namespace: "aws:elb:listener:443"
+        OptionName: "ListenerProtocol"
+        Value: "HTTPS"
+      - Namespace: "aws:elb:listener:443"
+        OptionName: "SSLCertificateId"
+        Value: !Join [ "", [ "arn:aws:iam::", !Ref "AWS::AccountId", ":server-certificate", !Ref SSLCertificatePath, !Ref SSLCertificateName ]]
+      - Namespace: "aws:elb:listener:443"
+        OptionName: "InstancePort"
+        Value: "80"
+      - Namespace: "aws:elb:listener:443"
+        OptionName: "InstanceProtocol"
+        Value: "HTTP"
+      TemplateName:
+        Ref: AggregatorConfigurationTemplate
+      VersionLabel:
+        Ref: AggregatorApplicationVersion
+
+Outputs: 
+  AggregatorURL:
+    Description: URL of EB environment
+    Value: !GetAtt AggregatorEnvironment.EndpointURL
+    Export:
+      Name: !Sub "${AWS::StackName}-AggregatorURL"
+

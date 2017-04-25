@@ -1,0 +1,15 @@
+{
+  "name": "from-table",
+  "version": "1.0.0",
+  "description": "fetch College Summaries from table",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "async": "^2.1.4",
+    "aws-scatter-gather": "^3.0.1",
+    "dynamo-doc": "^0.1.1",
+    "dynamodb-doc": "^1.0.0"
+  }
+}

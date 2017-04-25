@@ -1,0 +1,21 @@
+---
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: >
+  Build configuraion infrastructure
+  for College Summary API using
+  Scatter-Gather pattern
+
+Resources: 
+  ConfigBucket:
+    Type: "AWS::S3::Bucket"
+    Properties: 
+      AccessControl: "BucketOwnerRead"
+      BucketName: "shared-admissions-college-transcript-config"
+
+Outputs: 
+  BucketName:
+    Description: ARN for s3 bucket used to store configuration for this API
+    Value: !Ref ConfigBucket
+    Export:
+      Name: !Sub "${AWS::StackName}-BucketName"

@@ -1,0 +1,33 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: >
+  Build routing path for aggregator
+  for College Summary API using
+  Scatter-Gather pattern
+
+Parameters: 
+  AggregatorStackName:
+    Description: >
+      Name of a CloudFormation Stack that contains
+      aggregator resource definitions
+    Type: "String"
+    MinLength: 1
+    MaxLength: 255
+    AllowedPattern: "[a-zA-Z][-a-zA-Z0-9]*"
+    Default: "SharedAdmissionsCollegeSummaryAggregatorStack"
+  AggregatorCNAME:
+    Description: CNAME attribute of Aggregator EB Environment
+    Type: "String"
+
+Resources: 
+  NamedUrl:
+    Type: "AWS::Route53::RecordSet"
+    Properties: 
+      AliasTarget:
+        DNSName: !Ref AggregatorCNAME
+        EvaluateTargetHealth: false
+        HostedZoneId: "Z38NKT9BP95V3O"
+      HostedZoneId: "Z1DLJKPB1QS06V"
+      Name: "college-summary.stage.sim.appdev.byu.edu."
+      Type: "A"
+

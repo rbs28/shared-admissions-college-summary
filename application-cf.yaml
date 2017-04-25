@@ -1,0 +1,303 @@
+---
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: >
+  Build infrastructure for responders
+  for College Summary API using
+  Scatter-Gather pattern
+
+Parameters: 
+  ConfigStackName:
+    Description: >
+      Name of a CloudFormation Stack that contains
+      configuration for this API
+    Type: "String"
+    MinLength: 1
+    MaxLength: 255
+    AllowedPattern: "[a-zA-Z][-a-zA-Z0-9]*"
+    Default: "SharedAdmissionsCollegeSummaryConfigStack"
+  SummaryTableName:
+    Description: "Table name in DynamoDB to store college summaries"
+    Type: "String"
+  CacheTableName:
+    Description: "Table name in DynamoDB to cache request results"
+    Type: "String"
+
+Resources: 
+  AlertTopic:
+    Type: "AWS::SNS::Topic"
+    Properties: 
+      DisplayName: "shared-admissions-college-summary-alert-topic"
+  ResponseTopic:
+    Type: "AWS::SNS::Topic"
+    Properties: 
+      DisplayName: "shared-admissions-college-summary-response-topic"
+  CacheTable:
+    Type: "AWS::DynamoDB::Table"
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: "Id"
+          AttributeType: "S"
+      KeySchema:
+        - AttributeName: "Id"
+          KeyType: "HASH"
+      ProvisionedThroughput:
+        ReadCapacityUnits: "5"
+        WriteCapacityUnits: "5"
+      TableName: !Ref CacheTableName
+  CacherRole:
+    Type: "AWS::IAM::Role"
+    Properties: 
+      AssumeRolePolicyDocument: 
+        Version: "2012-10-17"
+        Statement: 
+          - 
+            Effect: "Allow"
+            Principal: 
+              Service: 
+                - "lambda.amazonaws.com"
+            Action: 
+              - "sts:AssumeRole"
+      Path: "/cesSharedAdmissions/collegeSummary/"
+      ManagedPolicyArns:
+        - "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+      Policies:
+        - PolicyDocument:
+            Version: "2012-10-17"
+            Statement: 
+              - 
+                Effect: "Allow"
+                Action:
+                  - "sns:ConfirmSubscription"
+                  - "sns:GetEndpointAttributes"
+                  - "sns:GetPlatformApplicationAttributes"
+                  - "sns:GetSubscriptionAttributes"
+                  - "sns:GetTopicAttributes"
+                  - "sns:ListEndpointsByPlatformApplication"
+                  - "sns:ListPlatformApplications"
+                  - "sns:ListSubscriptions"
+                  - "sns:ListSubscriptionsByTopic"
+                  - "sns:ListTopics"
+                  - "sns:Publish"
+                  - "sns:SetSubscriptionAttributes"
+                  - "sns:Subscribe"
+                  - "sns:Unsubscribe"
+                Resource:
+                  - !Ref AlertTopic
+                  - !Ref ResponseTopic
+              -
+                Effect: "Allow"
+                Action:
+                  - "dynamodb:GetItem"
+                  - "dynamodb:PutItem"
+                  - "dynamodb:DescribeTable"
+                  - "dynamodb:ListTables"
+                  - "dynamodb:Query"
+                  - "dynamodb:Scan"
+                  - "dynamodb:UpdateItem"
+                Resource: "*"
+          PolicyName: "accessCollegeSummaryCacheResources"
+  CacheResponder:
+    Type: "AWS::Lambda::Function"
+    Properties: 
+      Code:
+        S3Bucket: 
+          Fn::ImportValue:
+            !Sub "${ConfigStackName}-BucketName"
+        S3Key: "CacheResponderLambda.zip"
+      Description: Retrieve from Dynamo Cache
+      Environment:
+        Variables:
+          ALERT_TOPIC_ARN: !Ref AlertTopic
+          TABLE_NAME: !Ref CacheTableName
+      Handler: "index.handler"
+      Role: !GetAtt CacherRole.Arn
+      Runtime: "nodejs6.10"
+      Timeout: 300
+# SNS Topics that need to trigger lambda code must come after the lambda is defined
+  CacheTopic:
+    Type: "AWS::SNS::Topic"
+    Properties: 
+      DisplayName: "shared-admissions-college-summary-cache-topic"
+      Subscription:
+      - Endpoint: !GetAtt CacheResponder.Arn
+        Protocol: "lambda"
+  CacheResponderPermissions:
+    Type: "AWS::Lambda::Permission"
+    Properties: 
+      Action: "lambda:InvokeFunction"
+      FunctionName: !GetAtt CacheResponder.Arn
+      Principal: "sns.amazonaws.com"
+      SourceArn: !Ref CacheTopic
+  SummaryTable:
+    Type: "AWS::DynamoDB::Table"
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: "Id"
+          AttributeType: "S"
+        - AttributeName: "College"
+          AttributeType: "S"
+      KeySchema:
+        - AttributeName: "Id"
+          KeyType: "HASH"
+        - AttributeName: "College"
+          KeyType: "RANGE"
+      ProvisionedThroughput:
+        ReadCapacityUnits: "5"
+        WriteCapacityUnits: "5"
+      TableName: !Ref SummaryTableName
+  SummaryRole:
+    Type: "AWS::IAM::Role"
+    Properties: 
+      AssumeRolePolicyDocument: 
+        Version: "2012-10-17"
+        Statement: 
+          - 
+            Effect: "Allow"
+            Principal: 
+              Service: 
+                - "lambda.amazonaws.com"
+            Action: 
+              - "sts:AssumeRole"
+      Path: "/cesSharedAdmissions/collegeSummary/"
+      ManagedPolicyArns:
+        - "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+      Policies:
+        - PolicyDocument:
+            Version: "2012-10-17"
+            Statement: 
+              - 
+                Effect: "Allow"
+                Action:
+                  - "sns:ConfirmSubscription"
+                  - "sns:GetEndpointAttributes"
+                  - "sns:GetPlatformApplicationAttributes"
+                  - "sns:GetSubscriptionAttributes"
+                  - "sns:GetTopicAttributes"
+                  - "sns:ListEndpointsByPlatformApplication"
+                  - "sns:ListPlatformApplications"
+                  - "sns:ListSubscriptions"
+                  - "sns:ListSubscriptionsByTopic"
+                  - "sns:ListTopics"
+                  - "sns:Publish"
+                  - "sns:SetSubscriptionAttributes"
+                  - "sns:Subscribe"
+                  - "sns:Unsubscribe"
+                Resource:
+                  - !Ref AlertTopic
+                  - !Ref ResponseTopic
+              -
+                Effect: "Allow"
+                Action:
+                  - "dynamodb:GetItem"
+                  - "dynamodb:PutItem"
+                  - "dynamodb:DescribeTable"
+                  - "dynamodb:ListTables"
+                  - "dynamodb:Query"
+                  - "dynamodb:Scan"
+                  - "dynamodb:UpdateItem"
+                Resource: "*"
+          PolicyName: "accessCollegeSummaryCacheResources"
+  SummaryResponder:
+    Type: "AWS::Lambda::Function"
+    Properties: 
+      Code:
+        S3Bucket: 
+          Fn::ImportValue:
+            !Sub "${ConfigStackName}-BucketName"
+        S3Key: "TableResponderLambda.zip"
+      Description: Retrieve from Dynamo Store
+      Environment:
+        Variables:
+          ALERT_TOPIC_ARN: !Ref AlertTopic
+          CACHER_TOPIC_ARN: !Ref CacheTopic
+          TABLE_NAME: !Ref SummaryTableName
+      Handler: "index.handler"
+      Role: !GetAtt SummaryRole.Arn
+      Runtime: "nodejs6.10"
+      Timeout: 300
+  RequestTopic:
+    Type: "AWS::SNS::Topic"
+    Properties: 
+      DisplayName: "shared-admissions-college-summary-request-topic"
+      Subscription:
+        - Endpoint: !GetAtt CacheResponder.Arn
+          Protocol: "lambda"
+        - Endpoint: !GetAtt SummaryResponder.Arn
+          Protocol: "lambda"
+  RequestCacheResponderPermissions:
+    Type: "AWS::Lambda::Permission"
+    Properties: 
+      Action: "lambda:InvokeFunction"
+      FunctionName: !GetAtt CacheResponder.Arn
+      Principal: "sns.amazonaws.com"
+      SourceArn: !Ref RequestTopic
+  RequestSummaryResponderPermissions:
+    Type: "AWS::Lambda::Permission"
+    Properties: 
+      Action: "lambda:InvokeFunction"
+      FunctionName: !GetAtt SummaryResponder.Arn
+      Principal: "sns.amazonaws.com"
+      SourceArn: !Ref RequestTopic
+  CacheSubscription:
+    Type: "AWS::SNS::Subscription"
+    Properties:
+      Endpoint: !GetAtt CacheResponder.Arn
+      Protocol: "lambda"
+      TopicArn: !Ref CacheTopic
+# The service here must be ec2 for some reason, if it's elasticbeanstalk, the instances created will
+# not start
+  EBAccessRole:
+    Type: "AWS::IAM::Role"
+    Properties: 
+      AssumeRolePolicyDocument: 
+        Version: "2012-10-17"
+        Statement: 
+          - 
+            Effect: "Allow"
+            Principal: 
+              Service: 
+                - "ec2.amazonaws.com"
+            Action: 
+              - "sts:AssumeRole"
+      Path: "/cesSharedAdmissions/collegeSummary/"
+      ManagedPolicyArns:
+        - "arn:aws:iam::aws:policy/AmazonElastiCacheFullAccess"
+        - "arn:aws:iam::aws:policy/AWSElasticBeanstalkWebTier"
+        - "arn:aws:iam::aws:policy/AWSElasticBeanstalkWorkerTier"
+        - "arn:aws:iam::aws:policy/service-role/AWSElasticBeanstalkEnhancedHealth"
+      Policies:
+        - PolicyDocument:
+            Version: "2012-10-17"
+            Statement: 
+              - 
+                Effect: "Allow"
+                Action:
+                  - "sns:ConfirmSubscription"
+                  - "sns:GetEndpointAttributes"
+                  - "sns:GetPlatformApplicationAttributes"
+                  - "sns:GetSubscriptionAttributes"
+                  - "sns:GetTopicAttributes"
+                  - "sns:ListEndpointsByPlatformApplication"
+                  - "sns:ListPlatformApplications"
+                  - "sns:ListSubscriptions"
+                  - "sns:ListSubscriptionsByTopic"
+                  - "sns:ListTopics"
+                  - "sns:Publish"
+                  - "sns:SetSubscriptionAttributes"
+                  - "sns:Subscribe"
+                  - "sns:Unsubscribe"
+                Resource:
+                  - !Ref AlertTopic
+                  - !Ref CacheTopic
+                  - !Ref RequestTopic
+                  - !Ref ResponseTopic
+          PolicyName: "accessCollegeSummaryTopics"
+
+Outputs: 
+  AggregatorRoleName:
+    Description: Name of Role to use for aggregator component
+    Value: !Ref EBAccessRole
+    Export:
+      Name: !Sub "${AWS::StackName}-AggregatorRole"
+

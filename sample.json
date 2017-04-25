@@ -1,0 +1,111 @@
+{
+  "college_summaries": {
+    "links": {
+      "college_summaries__info": {
+        "rel": "self",
+        "href": "https://api.byu.edu/cesapi/applicants/764634873/college_summaries",
+        "method": "GET",
+        "title": "college_summaries.getCollegeSummaries"
+      }
+    },
+    "metadata": {
+      "collection_size": 4,
+      "page_start": 1,
+      "page_end": 4,
+      "page_size": 4,
+      "default_page_size": 50,
+      "max_page_size": 50,
+      "validation_response": {
+        "return_code": 200,
+        "response": "Successful"
+      }
+    },
+    "values": [
+      {
+        "links": {
+          "college_summaries__info": {
+            "rel": "self",
+            "href": "https://api.byu.edu/cesapi/applicants/764634873/college_summaries/BYU-Idaho,2013-01,2013-08",
+            "method": "GET",
+            "title": "college_summaries.getCollegeSummaries"
+          },
+          "college_summaries__modify": {
+            "rel": "college_summaries__modify",
+            "href": "https://api.byu.edu/cesapi/applicants/764634873/college_summaries/BYU-Idaho,2013-01,2013-08",
+            "method": "PUT",
+            "title": "college_summaries.modifyCollegeSummaries"
+          },
+          "college_summaries__remove": {
+            "rel": "college_summaries__remove",
+            "href": "https://api.byu.edu/cesapi/applicants/764634873/college_summaries/BYU-Idaho,2013-01,2013-08",
+            "method": "DELETE",
+            "title": "college_summaries.removeCollegeSummaries"
+          }
+        },
+        "metadata": {
+          "validation_response": {
+            "return_code": 200,
+            "response": "Successful"
+          }
+        },
+        "applicant_id": {
+          "value": "764634873",
+          "api_type": "system",
+          "key": true,
+          "display_label": "Applicant ID"
+        },
+        "college": {
+          "value": "BYU-Idaho",
+          "description": "BYU Idaho",
+          "domain": "https://api.byu.edu/byuapi/meta/college_summaries",
+          "api_type": "modifiable",
+          "key": true,
+          "display_label": "College Attended"
+        },
+        "start_month": {
+          "value": "2013-01",
+          "api_type": "modifiable",
+          "key": true,
+          "display_label": "First Month of Attendance"
+        },
+        "end_month": {
+          "value": "2013-08",
+          "api_type": "modifiable",
+          "key": true,
+          "display_label": "Last Month of Attendance"
+        },
+        "college_gpa": {
+          "value": "3.16",
+          "api_type": "derived",
+          "display_label": "GPA"
+        },
+        "credit_hours_graded": {
+          "value": "34.0",
+          "api_type": "modifiable",
+          "display_label": "Credit Hours"
+        },
+        "grade_points_earned": {
+          "value": "107.4",
+          "api_type": "modifiable",
+          "display_label": "Grade Points"
+        },
+        "date_time_verified": {
+          "value": "2014-05-11T13:45:53.20Z",
+          "api_type": "system",
+          "display_label": "College Attendance was verified when?"
+        },
+        "updated_by_id": {
+          "value": "764634873",
+          "api_type": "system",
+          "description": "Bugs Bunny Ithaca",
+          "display_label": "College Attendance was last updated by whom?"
+        },
+        "date_time_updated": {
+          "value": "2014-05-11T13:45:53.20Z",
+          "api_type": "system",
+          "display_label": "College Attendance was last updated when?"
+        }
+      }
+    ]
+  }
+}
