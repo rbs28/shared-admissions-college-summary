@@ -3,12 +3,11 @@ const dynamo  = new doc.DynamoDB();
 const async   = require('async');
 
 const fetchFromTable = function(next) {
-  const {applicant_id, college} = this;
+  const {applicant_id} = this;
   const parameters = {
     'TableName': process.env.TABLE_NAME,
     'Key': {
-      'Id': applicant_id,
-      'College': college
+      'Id': applicant_id
     }
   };
   console.log("Fetch info from Table", JSON.stringify(parameters, null, 2));
@@ -16,15 +15,15 @@ const fetchFromTable = function(next) {
 };
 
 const updateRecord = function(data, next) {
-  const {applicant_id, college, start_month, end_month, payload, userId} = this;
+  const {college, start_month, end_month, payload, userId} = this;
   const newRecord = Object.assign({}, payload, {
     updated_by_id: userId,
     date_time_updated: new Date().toJSON()
   });
   console.log("Here is the return from the retrieve function" + JSON.stringify(data, null, 2));
   try {
-    const result = data.Item.SummaryList;
-    const indexToReplace = result.findIndex(s => s.start_month === start_month && s.end_month === end_month);
+    const result = (data.Item && data.Item.SummaryList) ? data.Item.SummaryList : [];
+    const indexToReplace = result.findIndex(s => s.college === college && s.start_month === start_month && s.end_month === end_month);
     if(indexToReplace < 0) {
       // append to end of list
       return next(null, result.concat([newRecord]));
@@ -38,11 +37,10 @@ const updateRecord = function(data, next) {
 };
 
 const writeUpdatedRecord = function(data, next) {
-  const {applicant_id, college} = this;
+  const {applicant_id} = this;
   const params = {
     Item: {
       Id: applicant_id,
-      College: college,
       SummaryList: data
     },
     TableName: process.env.TABLE_NAME
@@ -50,15 +48,15 @@ const writeUpdatedRecord = function(data, next) {
   dynamo.putItem(params, next);
 };
 
-module.exports = function(data, done) {
+module.exports = function(parameters, done) {
   const {applicant_id, college, start_month, end_month} = parameters.key;
   const {payload} = parameters.payload;
   const {byuId: userId} = parameters.user;
 
   async.waterfall([
-    fetchFromTable.bind({applicant_id, college}),
-    updateRecord.bind({applicant_id, college, start_month, end_month, payload, userId}),
-    writeUpdatedRecord.bind({applicant_id, college})
+    fetchFromTable.bind({applicant_id}),
+    updateRecord.bind({college, start_month, end_month, payload, userId}),
+    writeUpdatedRecord.bind({applicant_id})
   ], function(err, data) {
     if(err) {
       const errMessage = 'Error getting College Summary from DB.';

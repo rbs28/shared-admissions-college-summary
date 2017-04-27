@@ -3,12 +3,11 @@ const dynamo  = new doc.DynamoDB();
 const async   = require('async');
 
 const fetchFromTable = function(next) {
-  const {applicant_id, college} = this;
+  const {applicant_id} = this;
   const parameters = {
     'TableName': process.env.TABLE_NAME,
     'Key': {
-      'Id': applicant_id,
-      'College': college
+      'Id': applicant_id
     }
   };
   console.log("Fetch info from Table", JSON.stringify(parameters, null, 2));
@@ -16,11 +15,11 @@ const fetchFromTable = function(next) {
 };
 
 const updateRecord = function(data, next) {
-  const {start_month, end_month} = this;
+  const {college, start_month, end_month} = this;
   console.log("Here is the return from the retrieve function" + JSON.stringify(data, null, 2));
   try {
-    const result = data.Item.SummaryList;
-    const indexToRemove = result.findIndex(s => s.start_month === start_month && s.end_month === end_month);
+    const result = (data.Item && data.Item.SummaryList) ? data.Item.SummaryList : [];
+    const indexToRemove = result.findIndex(s => s.college === college && s.start_month === start_month && s.end_month === end_month);
     if(indexToRemove < 0) {
       // record not found
       return next({message: 'Record not found'});
@@ -57,14 +56,14 @@ const writeUpdatedRecord = function(data, next) {
   return dynamo.deleteItem(params, next);
 };
 
-module.exports = function(data, done) {
+module.exports = function(parameters, done) {
   const {applicant_id, college, start_month, end_month} = parameters.key;
   const {payload} = parameters.payload;
   const {byuId: userId} = parameters.user;
 
   async.waterfall([
-    fetchFromTable.bind({applicant_id, college}),
-    updateRecord.bind({start_month, end_month}),
+    fetchFromTable.bind({applicant_id}),
+    updateRecord.bind({college, start_month, end_month}),
     writeUpdatedRecord.bind({applicant_id, college})
   ], function(err, data) {
     if(err) {

@@ -22,35 +22,6 @@ var raiseAlert = function(error) {
   });
 };
 
-const publishToCacheUpdateTopic = function(parameters, data) {
-  const {applicant_id, college, start_month, end_month} = parameters.key;
-  const {netId: userId} = parameters.user;
-
-  const key = [applicant_id, college, start_month, end_month].filter(i=>!!i).join(',');
-
-  const accessKey = [key, userId].join('/');
-
-  const params = {
-    Message: JSON.stringify({
-      request: "toCacher",
-      parameters: {
-        AccessKey: accessKey,
-        RequestDate: new Date().toString(),
-        Response: JSON.stringify(data)
-      }
-    }),
-    TargetArn: process.env.CACHER_TOPIC_ARN
-  };
-
-  sns.publish(params, function(err, message) {
-    if(err) {
-      raiseAlert(err);
-    } else {
-      console.log("Published to SNS topic: " + JSON.stringify(message));
-    }
-  });
-};
-
 exports.response = Scather.response(
 function TableResponder(data, done) {
   
@@ -60,30 +31,26 @@ function TableResponder(data, done) {
 
   const eventType = data.request;
 
-  const cbFn = (err, res) => {
+  const cbFn = function(err, res) {
     if(err) {
       raiseAlert(err);
       return done(err);
     }
-    this.publish(res);
     done(null, res);
   };
 
   if(eventType === 'retrieve') {
-    retrieve(data.parameters, cbFn.bind({
-      publish: (res) => publishToCacheUpdateTopic(data.parameters, res)
-    }));
+    console.log('Calling retrieve action');
+    retrieve(data.parameters, cbFn);
   } else if(eventType === 'store') {
-    store(data.parameters, cbFn.bind({
-      publish: (res) => publishToCacheUpdateTopic(data.parameters, data.parameters.payload)
-    }));
+    console.log('Calling store action');
+    store(data.parameters, cbFn);
   } else if(eventType === 'remove') {
-    remove(data.parameters, cbFn.bind({
-      publish: (res) => publishToCacheUpdateTopic(data.parameters, {})
-    }));
+    console.log('Calling remove action');
+    remove(data.parameters, cbFn);
   }
 
 });
 
-exports.lambda = Scather.lambda(exports.response);
+exports.handler = Scather.lambda(exports.response);
 

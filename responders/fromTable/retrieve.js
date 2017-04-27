@@ -3,14 +3,10 @@ const dynamo  = new doc.DynamoDB();
 const async   = require('async');
 
 const fetchFromTable = function(next) {
-  const {applicant_id, college} = this;
+  const {applicant_id} = this;
   let Key = {
     'Id': applicant_id
   };
-
-  if(college) {
-    Key.College = college;
-  }
 
   const parameters = {
     'TableName': process.env.TABLE_NAME,
@@ -22,25 +18,34 @@ const fetchFromTable = function(next) {
 
 const filterResults = function(data, next) {
   const {college, start_month, end_month} = this;
+  let result = [];
   console.log("Here is the return from the retrieve function" + JSON.stringify(data, null, 2));
   try {
-    const result = data.Item.SummaryList;
-    if(start_month && end_month) {
-      return next(null, result.filter(s => s.start_month === start_month && s.end_month === end_month));
+    if(!data.Item || !data.Item.SummaryList) {
+      // No record found
+      return next(null, []);
     }
-    next(null, result);
+    result = data.Item.SummaryList;
+    if(college) {
+      result = result.filter(s => s.college === college);
+    }
+    if(start_month && end_month) {
+      result = result.filter(s => s.start_month === start_month && s.end_month === end_month);
+    }
   } catch (err) {
     console.log("Error processing data from DyanamoDB", err, err.stack);
     next(err);
   }
+  next(null, result);
 };
 
-module.exports = function(data, done) {
+module.exports = function(parameters, done) {
+  console.log('in retrieve action - ', parameters);
   const {applicant_id, college, start_month, end_month} = parameters.key;
   const {netId: callerNetId} = parameters.user;
 
   async.waterfall([
-    fetchFromTable.bind({applicant_id, college, start_month, end_month, callerNetId}),
+    fetchFromTable.bind({applicant_id}),
     filterResults.bind({college, start_month, end_month})
   ], function(err, data) {
     if(err) {
@@ -49,6 +54,7 @@ module.exports = function(data, done) {
       return done({'message': errMessage, 'details': err});
     }
 
+    console.log('Return from retrieve:\n', data);
     done(null, data);
   });
 };
