@@ -1,19 +1,25 @@
 #!/bin/bash
 script_path="`dirname \"$BASH_SOURCE\"`"
+file_list="package.json main.js aggregator.js validator.js middleware"
 cd $script_path/..
 here=`pwd`
 mkdir tmp
 cd aggregator
-cp package.json $here/tmp
-cp server.js $here/tmp
-cp aggregator.js $here/tmp
-cp -R middleware $here/tmp
+for FILENAME in $file_list; do
+	if [ -d $FILENAME ]; then
+		cp -R $FILENAME $here/tmp
+	else
+		cp $FILENAME $here/tmp
+	fi
+done
+
 $here/scripts/extractResources.sh SharedAdmissionsCollegeSummaryApplicationStack > $here/tmp/config.json
+
 cd $here/tmp
 if [ -f /tmp/college-aggregator.zip ]; then
-	zip -rf /tmp/college-aggregator.zip package.json server.js aggregator.js config.json middleware
+	zip -rf /tmp/college-aggregator.zip $file_list config.json
 else
-	zip -r /tmp/college-aggregator.zip package.json server.js aggregator.js config.json middleware
+	zip -r /tmp/college-aggregator.zip $file_list config.json
 fi
 cd $here
 rm -rf $here/tmp

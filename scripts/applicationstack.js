@@ -18,10 +18,6 @@ const parms = [
   {
     ParameterKey: 'SummaryTableName',
     ParameterValue: config.summaryTableName
-  },
-  {
-    ParameterKey: 'CacheTableName',
-    ParameterValue: config.cacheTableName
   }
 ];
 
