@@ -1,16 +1,16 @@
 {
   "name": "aggregator",
   "version": "1.0.0",
-  "description": "scatter/gather high school transcritps",
+  "description": "scatter/gather college summary",
   "repository": "none",
   "main": "server.js",
   "scripts": {
     "test": "node test.js",
-    "start": "node server.js"
+    "start": "node main.js"
   },
   "author": "",
   "dependencies": {
-    "aws-scatter-gather": "^3.0.1",
+    "aws-scatter-gather": "^3.1.0",
     "body-parser": "^1.16.0",
     "byu-jwt": "^0.1.3",
     "express": "^4.14.0",

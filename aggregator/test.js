@@ -1,6 +1,6 @@
 'use strict';
 
-const {validator, validateKey} = require('./validator');
+const {validator, validateKey, validateFullKey} = require('./validator');
 
 const logErrors = (errors) => console.log(errors.map(e => e.stack));
 
@@ -16,6 +16,15 @@ const testFn = (expected, ...objects) => {
 const testKeyFn = (expected, ...objects) => {
   const obj = Object.assign({}, ...objects);
   const result = validateKey(obj);
+  if(result.errors.length > 0) {
+    logErrors(result.errors);
+  }
+  return result.valid === expected;
+};
+
+const testFullKeyFn = (expected, ...objects) => {
+  const obj = Object.assign({}, ...objects);
+  const result = validateFullKey(obj);
   if(result.errors.length > 0) {
     logErrors(result.errors);
   }
@@ -65,9 +74,10 @@ const notEnoughProps = () => testFn(false, otherPropsValid);
 const extraProps = () => testFn(false, baseProps, monthPropsValid, otherPropsValid, {updated_by_id: 'shouldNotBeSpecified'});
 
 const validPartialKey = () => testKeyFn(true, baseProps);
-const validFullKey = () => testKeyFn(true, baseProps, monthPropsValid);
-const invalidFullKey = () => testKeyFn(false, baseProps, monthPropsInvalid);
+const validFullKey = () => testFullKeyFn(true, baseProps, monthPropsValid);
+const invalidFullKey = () => testFullKeyFn(false, baseProps, monthPropsInvalid);
 const validIdOnly = () => testKeyFn(true, {applicant_id: '12345'});
+const incompleteFullKey = () => testFullKeyFn(false, {applicant_id: '12345'});
 
 const runAllTests = () => {
   const allTestsPass = [
@@ -86,6 +96,7 @@ const runAllTests = () => {
     validFullKey,
     invalidFullKey,
     validIdOnly,
+    incompleteFullKey,
   ].reduce( (allValid, test) => {
     const valid = test();
     console.log(test.name, '=>', valid ? 'PASS': 'FAIL');

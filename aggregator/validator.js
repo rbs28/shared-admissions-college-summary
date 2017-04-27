@@ -40,6 +40,9 @@ const collegeSummarySchema = {
 };
 
 const requiredFields = {"required": ["applicant_id", "college", "college_description", "start_month", "end_month"]};
+const partialKey = {"required": ["applicant_id"]};
+const fullKey = {"required": ["applicant_id", "college", "start_month", "end_month"]};
 
 module.exports.validator = (obj) => v.validate(obj, Object.assign({}, collegeSummarySchema, requiredFields));
-module.exports.validateKey = (obj) => v.validate(obj, collegeSummarySchema);
+module.exports.validateKey = (obj) => v.validate(obj, Object.assign({}, collegeSummarySchema, partialKey));
+module.exports.validateFullKey = (obj) => v.validate(obj, Object.assign({}, collegeSummarySchema, fullKey));

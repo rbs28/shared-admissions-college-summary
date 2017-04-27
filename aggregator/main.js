@@ -23,7 +23,7 @@ const Scather = require('aws-scatter-gather');
 const bodyParser = require('body-parser');
 const config = require('./config.json');
 const authentication = require('./middleware/authentication.js');
-const {validator, validateKey} = require('./validator.js');
+const {validator, validateKey, validateFullKey} = require('./validator.js');
 
 // create an express app and add the scather sns middleware
 const app = express();
@@ -56,6 +56,8 @@ const get = function(req, res) {
         const [applicant_id, college, start_month, end_month] = parts;
 
         const v = validateKey({applicant_id, college, start_month, end_month});
+
+        const user = req.byu.user;
 
         //creates a message to aggregate with that listening lambdas will understand
         const message = {
@@ -98,7 +100,7 @@ const put = function(req, res) {
     const [applicant_id, college, start_month, end_month] = key.split(',');
     const body = req.body;
     const payload = Object.assign({}, body, {applicant_id, college, start_month, end_month});
-    {errors, valid} = validator(payload);
+    const {errors, valid} = validator(payload);
     if(!valid) {
         errMessage = {
             message: 'Invalid request parameter(s)!',
@@ -142,7 +144,7 @@ const del = function(req, res) {
         const parts = req.params.key.split(',');
         const [applicant_id, college, start_month, end_month] = parts;
 
-        const v = validateKey({applicant_id, college, start_month, end_month});
+        const v = validateFullKey({applicant_id, college, start_month, end_month});
 
         const user = req.byu.user;
 

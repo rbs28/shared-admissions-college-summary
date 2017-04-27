@@ -28,10 +28,8 @@ exports.get = Scather.aggregator({
     composer: function(responses) {
         if(responses.TableResponder) {
             return responses.TableResponder;
-        } else if(responses.CacheResponder) {
-            return responses.CacheResponder;
         }
-        return {};
+        return [];
     },
     error: 'it broke!',
     expects: ['TableResponder'],
@@ -46,10 +44,8 @@ exports.put = Scather.aggregator({
     composer: function(responses) {
         if(responses.TableResponder) {
             return responses.TableResponder;
-        } else if(responses.CacheResponder) {
-            return responses.CacheResponder;
         }
-        return {};
+        return [];
     },
     error: 'it broke!',
     expects: ['TableResponder'],
@@ -64,10 +60,8 @@ exports.del = Scather.aggregator({
     composer: function(responses) {
         if(responses.TableResponder) {
             return responses.TableResponder;
-        } else if(responses.CacheResponder) {
-            return responses.CacheResponder;
         }
-        return {};
+        return [];
     },
     error: 'it broke!',
     expects: ['TableResponder'],

@@ -11,6 +11,7 @@ module.exports.init = function(opts) {
   return function (req, res, next) {
     debug('originalUrl: ' + req.url);
     debug('request method: ' + req.method);
+    debug('request headers: ' + JSON.stringify(req.headers, null, 2));
     if (['GET', 'POST', 'PUT', 'DELETE'].find(m => m === req.method) === undefined) {
       debug('skipping auth check for \'' + req.method + '\' method');
       next();
