@@ -20,7 +20,8 @@ const updateRecord = function(data, next) {
     updated_by_id: userId,
     date_time_updated: new Date().toJSON()
   });
-  console.log("Here is the return from the retrieve function" + JSON.stringify(data, null, 2));
+  console.log('new record value:\n', newRecord);
+  console.log('Here is the return from the retrieve function' + JSON.stringify(data, null, 2));
   try {
     const result = (data.Item && data.Item.SummaryList) ? data.Item.SummaryList : [];
     const indexToReplace = result.findIndex(s => s.college === college && s.start_month === start_month && s.end_month === end_month);
@@ -29,14 +30,16 @@ const updateRecord = function(data, next) {
       return next(null, result.concat([newRecord]));
     }
     const updatedList = result.slice(0, indexToReplace).concat([newRecord]).concat(result.slice(indexToReplace+1));
+    console.log('Updating summary list:\n', updatedList);
     return next(null, updatedList);
   } catch (err) {
-    console.log("Error processing data from DyanamoDB", err, err.stack);
+    console.log('Error processing data from DyanamoDB', err, err.stack);
     next(err);
   }
 };
 
 const writeUpdatedRecord = function(data, next) {
+  console.log('writing data to dynamodb\n', data);
   const {applicant_id} = this;
   const params = {
     Item: {
@@ -50,8 +53,10 @@ const writeUpdatedRecord = function(data, next) {
 
 module.exports = function(parameters, done) {
   const {applicant_id, college, start_month, end_month} = parameters.key;
-  const {payload} = parameters.payload;
+  const payload = parameters.payload;
   const {byuId: userId} = parameters.user;
+
+  console.log('parameters:\n', parameters);
 
   async.waterfall([
     fetchFromTable.bind({applicant_id}),

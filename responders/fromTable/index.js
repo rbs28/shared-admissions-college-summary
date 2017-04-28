@@ -43,7 +43,7 @@ function TableResponder(data, done) {
     console.log('Calling retrieve action');
     retrieve(data.parameters, cbFn);
   } else if(eventType === 'store') {
-    console.log('Calling store action');
+    console.log('Calling store action with payload=\n', data.parameters.payload);
     store(data.parameters, cbFn);
   } else if(eventType === 'remove') {
     console.log('Calling remove action');

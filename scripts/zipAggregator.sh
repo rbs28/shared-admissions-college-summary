@@ -1,6 +1,6 @@
 #!/bin/bash
 script_path="`dirname \"$BASH_SOURCE\"`"
-file_list="package.json main.js aggregator.js validator.js middleware"
+file_list="package.json main.js aggregator.js validator.js authorization.js middleware"
 cd $script_path/..
 here=`pwd`
 mkdir tmp

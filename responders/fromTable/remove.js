@@ -18,14 +18,19 @@ const updateRecord = function(data, next) {
   const {college, start_month, end_month} = this;
   console.log("Here is the return from the retrieve function" + JSON.stringify(data, null, 2));
   try {
-    const result = (data.Item && data.Item.SummaryList) ? data.Item.SummaryList : [];
-    const indexToRemove = result.findIndex(s => s.college === college && s.start_month === start_month && s.end_month === end_month);
-    if(indexToRemove < 0) {
-      // record not found
+    if(data.Item && data.Item.SummaryList) {
+      const result = data.Item.SummaryList;
+      const indexToRemove = result.findIndex(s => s.college === college && s.start_month === start_month && s.end_month === end_month);
+      if(indexToRemove < 0) {
+        // record not found
+        return next({message: 'Record not found'});
+      }
+      const updatedList = result.slice(0, indexToRemove).concat(result.slice(indexToRemove+1));
+      console.log('updated list to store:\n', updatedList);
+      return next(null, updatedList);
+    } else {
       return next({message: 'Record not found'});
     }
-    const updatedList = result.slice(0, indexToReplace).concat(result.slice(indexToReplace+1));
-    return next(null, updatedList);
   } catch (err) {
     console.log("Error processing data from DyanamoDB", err, err.stack);
     next(err);
@@ -33,12 +38,12 @@ const updateRecord = function(data, next) {
 };
 
 const writeUpdatedRecord = function(data, next) {
-  const {applicant_id, college} = this;
+  console.log('writing/deleting data in dynamodb\n', data);
+  const {applicant_id} = this;
   if(data.length > 0) {
     const params = {
       Item: {
         Id: applicant_id,
-        College: college,
         SummaryList: data
       },
       TableName: process.env.TABLE_NAME
@@ -49,22 +54,20 @@ const writeUpdatedRecord = function(data, next) {
   const parameters = {
     TableName: process.env.TABLE_NAME,
     Key: {
-      Id: applicant_id,
-      College: college
+      Id: applicant_id
     }
   };
-  return dynamo.deleteItem(params, next);
+  return dynamo.deleteItem(parameters, next);
 };
 
 module.exports = function(parameters, done) {
   const {applicant_id, college, start_month, end_month} = parameters.key;
-  const {payload} = parameters.payload;
   const {byuId: userId} = parameters.user;
 
   async.waterfall([
     fetchFromTable.bind({applicant_id}),
     updateRecord.bind({college, start_month, end_month}),
-    writeUpdatedRecord.bind({applicant_id, college})
+    writeUpdatedRecord.bind({applicant_id})
   ], function(err, data) {
     if(err) {
       const errMessage = 'Error removing College Summary from DB.';

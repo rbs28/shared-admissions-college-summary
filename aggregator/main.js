@@ -23,6 +23,7 @@ const Scather = require('aws-scatter-gather');
 const bodyParser = require('body-parser');
 const config = require('./config.json');
 const authentication = require('./middleware/authentication.js');
+const authorization = require('./authorization.js');
 const {validator, validateKey, validateFullKey} = require('./validator.js');
 
 // create an express app and add the scather sns middleware
@@ -90,6 +91,15 @@ const get = function(req, res) {
 
 };
 
+const pruneUndefined = (o) => {
+  return Object.keys(o).reduce( (n, k) => {
+    if(typeof o[k] !== 'undefined') {
+      n[k] = o[k];
+    }
+    return n;
+  }, {});
+};
+
 const put = function(req, res) {
     const key = req.params.key;
     if (!key) {
@@ -99,10 +109,10 @@ const put = function(req, res) {
 
     const [applicant_id, college, start_month, end_month] = key.split(',');
     const body = req.body;
-    const payload = Object.assign({}, body, {applicant_id, college, start_month, end_month});
+    const payload = Object.assign({}, body, pruneUndefined({applicant_id, college, start_month, end_month}));
     const {errors, valid} = validator(payload);
     if(!valid) {
-        errMessage = {
+        const errMessage = {
             message: 'Invalid request parameter(s)!',
             details: errors.map(e => ({recieved: e.instance, error: e.stack}))
         };
@@ -185,9 +195,9 @@ var options = function(req,res) {
 };
 
 //when user makes a get request to / will run aggregate function
-app.get('/:key', get);
-app.put('/:key', put);
-app.delete('/:key', del);
+app.get('/:key', authorization, get);
+app.put('/:key', authorization, put);
+app.delete('/:key', authorization, del);
 app.options('/:key', options);
 
 // start the server listening on port 3000 or the current environment's port
