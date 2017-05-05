@@ -52,7 +52,7 @@ const writeUpdatedRecord = function(data, next) {
 };
 
 module.exports = function(parameters, done) {
-  const {applicant_id, college, start_month, end_month} = parameters.key;
+  const {applicant_id, college, start_month, end_month} = Object.assign({}, parameters.payload, parameters.key);
   const payload = parameters.payload;
   const {byuId: userId} = parameters.user;
 

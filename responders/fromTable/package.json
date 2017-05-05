@@ -8,7 +8,7 @@
   },
   "dependencies": {
     "async": "^2.1.4",
-    "aws-scatter-gather": "byu-oit-appdev/aws-scatter-gather",
+    "aws-scatter-gather": "github:byu-oit-appdev/aws-scatter-gather",
     "dynamo-doc": "^0.1.1",
     "dynamodb-doc": "^1.0.0"
   }
