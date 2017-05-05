@@ -93,7 +93,8 @@ Resources:
                   - "dynamodb:Query"
                   - "dynamodb:Scan"
                   - "dynamodb:UpdateItem"
-                Resource: "*"
+                Resource:
+                  - Fn::Sub: arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${SummaryTableName}
           PolicyName: "accessCollegeSummaryResources"
   SummaryResponder:
     Type: "AWS::Lambda::Function"
