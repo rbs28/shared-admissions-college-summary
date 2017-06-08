@@ -14,8 +14,8 @@ ddd:
   ubiquitous_language_url: 
   context_map_url: 
 links:
-  system_documentation_url: https://github.com/byu-oit-appdev/shared-admissions-college-summary
-  source_repo_url: https://github.com/byu-oit-appdev/shared-admissions-college-summary
+  system_documentation_url: https://github.com/byu-oit/shared-admissions-college-summary
+  source_repo_url: https://github.com/byu-oit/shared-admissions-college-summary
   swagger_urls:
 microservice: False
 technologies_used:
@@ -24,7 +24,7 @@ technologies_used:
 stages:
   production:
     urls:
-      product_page: https://github.com/byu-oit-appdev/shared-admissions-college-summary
+      product_page: https://github.com/byu-oit/shared-admissions-college-summary
       physical_url: 
       virtual_url: 
     hosting_location: 
@@ -48,5 +48,5 @@ tags:
   env: prd
   app: shared-admissions-college-summary
   team: gro:AD-Academic Information Management
-federation_json_url: https://raw.githubusercontent.com/byu-oit-appdev/shared-admissions-college-summary/master/.repo-meta.yml
+federation_json_url: https://raw.githubusercontent.com/byu-oit/shared-admissions-college-summary/master/.repo-meta.yml
 
