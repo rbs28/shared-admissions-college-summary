@@ -14,61 +14,60 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  **/
-'use strict';
-const AWS = require('aws-sdk');
-const Scather = require('aws-scatter-gather');
-const config = require('./config.json');
+'use strict'
+const AWS = require('aws-sdk')
+const Scather = require('aws-scatter-gather')
+const config = require('./config.json')
 
-AWS.config.update({region: 'us-west-2'});
+AWS.config.update({region: 'us-west-2'})
 
-const SNS = new AWS.SNS();
+const SNS = new AWS.SNS()
 
-//function that will create an aggregator that will make a request and listen for a response on the responseARN
+// function that will create an aggregator that will make a request and listen for a response on the responseARN
 exports.get = Scather.aggregator({
-    composer: function(responses) {
-        if(responses.TableResponder) {
-            return responses.TableResponder;
-        }
-        return [];
-    },
-    error: 'it broke!',
-    expects: ['TableResponder'],
-    maxWait: 5000,
-    minWait: 0,
-    responseArn: config.ResponseTopic.arn,
-    topicArn: config.RequestTopic.arn,
-    sns: SNS
-});
+  composer: function (responses) {
+    if (responses.TableResponder) {
+      return responses.TableResponder
+    }
+    return []
+  },
+  error: 'it broke!',
+  expects: ['TableResponder'],
+  maxWait: 5000,
+  minWait: 0,
+  responseArn: config.ResponseTopic.arn,
+  topicArn: config.RequestTopic.arn,
+  sns: SNS
+})
 
 exports.put = Scather.aggregator({
-    composer: function(responses) {
-        if(responses.TableResponder) {
-            return responses.TableResponder;
-        }
-        return [];
-    },
-    error: 'it broke!',
-    expects: ['TableResponder'],
-    maxWait: 10000,
-    minWait: 0,
-    responseArn: config.ResponseTopic.arn,
-    topicArn: config.RequestTopic.arn,
-    sns: SNS
-});
+  composer: function (responses) {
+    if (responses.TableResponder) {
+      return responses.TableResponder
+    }
+    return []
+  },
+  error: 'it broke!',
+  expects: ['TableResponder'],
+  maxWait: 10000,
+  minWait: 0,
+  responseArn: config.ResponseTopic.arn,
+  topicArn: config.RequestTopic.arn,
+  sns: SNS
+})
 
 exports.del = Scather.aggregator({
-    composer: function(responses) {
-        if(responses.TableResponder) {
-            return responses.TableResponder;
-        }
-        return [];
-    },
-    error: 'it broke!',
-    expects: ['TableResponder'],
-    maxWait: 10000,
-    minWait: 0,
-    responseArn: config.ResponseTopic.arn,
-    topicArn: config.RequestTopic.arn,
-    sns: SNS
-});
-
+  composer: function (responses) {
+    if (responses.TableResponder) {
+      return responses.TableResponder
+    }
+    return []
+  },
+  error: 'it broke!',
+  expects: ['TableResponder'],
+  maxWait: 10000,
+  minWait: 0,
+  responseArn: config.ResponseTopic.arn,
+  topicArn: config.RequestTopic.arn,
+  sns: SNS
+})

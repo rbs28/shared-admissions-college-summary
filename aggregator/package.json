@@ -3,17 +3,22 @@
   "version": "1.0.0",
   "description": "scatter/gather college summary",
   "repository": "none",
-  "main": "server.js",
+  "main": "main.js",
   "scripts": {
-    "test": "node test.js",
+    "test": "tape test.js | tap-spec",
     "start": "node main.js"
   },
   "author": "",
   "dependencies": {
-    "aws-scatter-gather": "github:byu-oit-appdev/aws-scatter-gather",
+    "aws-scatter-gather": "^3.2.0",
     "body-parser": "^1.17.2",
-    "byu-jwt": "^0.1.3",
+    "byu-jwt": "^0.1.5",
     "express": "^4.15.3",
+    "handel-utils": "^1.1.1",
     "jsonschema": "^1.1.1"
+  },
+  "devDependencies": {
+    "tap-spec": "^4.1.1",
+    "tape": "^4.7.0"
   }
 }

@@ -15,193 +15,209 @@
  *    limitations under the License.
  **/
 
-'use strict';
-const aggregator = require('./aggregator.js');
-const AWS = require('aws-sdk');
-const express = require('express');
-const Scather = require('aws-scatter-gather');
-const bodyParser = require('body-parser');
-const config = require('./config.json');
-const authentication = require('./middleware/authentication.js');
-const authorization = require('./authorization.js');
-const {validator, validateKey, validateFullKey} = require('./validator.js');
+'use strict'
+const aggregator = require('./aggregator.js')
+const AWS = require('aws-sdk')
+const express = require('express')
+const Scather = require('aws-scatter-gather')
+const bodyParser = require('body-parser')
+const debug = require('debug')('aggregator')
+const authentication = require('./middleware/authentication.js')
+const authorization = require('./authorization.js')
+const {validator, validateKey, validateFullKey} = require('./validator.js')
+const util = require('handel-utils')
 
 // create an express app and add the scather sns middleware
-const app = express();
+const app = express()
 
 const authOptions = {
-  bypassAuth: !!process.env.SKIP_AUTH //set to true to allow requests without JWT for testing
-};
+  bypassAuth: !!process.env.SKIP_AUTH // set to true to allow requests without JWT for testing
+}
 
 // Enable JWT checking for WSO2 authentication
-app.use(authentication.init(authOptions));
+app.use(authentication.init(authOptions))
 
 const middlewareOptions = {
-    endpoint: process.env.API_URL,
-    sns: new AWS.SNS({ region: 'us-west-2' }),
-    topics: [ config.ResponseTopic.arn ]
-};
+  endpoint: process.env.API_URL,
+  sns: new AWS.SNS({ region: 'us-west-2' }),
+  topics: [util.getVariable('sns', 'ResponseTopic', 'TOPIC_ARN')]
+}
 
-console.log('Scather config:', JSON.stringify(middlewareOptions, null, 2));
+debug('Scather config:' + JSON.stringify(middlewareOptions, null, 2))
 
-//Uses the scather middleware to make requests and process results. Can find more info on npmjs.com looking for aws-scatter-gather
-app.use(Scather.middleware(Object.assign({}, middlewareOptions, {server: app})));
+// Uses the scather middleware to make requests and process results. Can find more info on npmjs.com looking for aws-scatter-gather
+app.use(Scather.middleware(Object.assign({}, middlewareOptions, {server: app})))
 
-//These will allow you to retrieve body parameters. Currently not in use.
-app.use(bodyParser.json()); //support json encoded bodies
+// These will allow you to retrieve body parameters. Currently not in use.
+app.use(bodyParser.json()) // support json encoded bodies
 
-//function that will run when user makes a basic get request
-const get = function(req, res) {
-    if (req.params.key) {
-        const parts = req.params.key.split(',');
-        const [applicant_id, college, start_month, end_month] = parts;
+// function that will run when user makes a basic get request
+const get = function (req, res) {
+  if (req.params.key) {
+    const parts = req.params.key.split(',')
+    const [applicantId, college, startMonth, endMonth] = parts
 
-        const v = validateKey({applicant_id, college, start_month, end_month});
-
-        const user = req.byu.user;
-
-        //creates a message to aggregate with that listening lambdas will understand
-        const message = {
-            request: 'retrieve',
-            parameters: {
-                key: {
-                    applicant_id,
-                    college,
-                    start_month,
-                    end_month
-                },
-                user
-            }
-        };
-
-        //runs the aggregators function with message given and will display response to the browser window
-        aggregator.get(message, function(err, data) {
-            if(err) {
-                console.error(err, err.stack);
-                res.statusCode = err.statusCode || 500;
-                res.end(JSON.stringify({statusCode: res.statusCode, message: 'Error in service!', details: err}));
-                return;
-            }
-                console.log(data);
-                res.json(data);
-            });
-    } else {
-        res.end('Sorry, incorrect URL');
+    const {errors, valid} = validateKey({applicantId, college, startMonth, endMonth})
+    if (!valid) {
+      const errMessage = {
+        message: 'Invalid request parameter(s)!',
+        details: errors.map(e => ({recieved: e.instance, error: e.stack}))
+      }
+      debug('Error in validation: ' + errMessage)
+      return res.status(400).json(errMessage)
     }
 
-};
+    const user = req.byu.user
+
+    // creates a message to aggregate with that listening lambdas will understand
+    const message = {
+      request: 'retrieve',
+      parameters: {
+        key: {
+          applicantId,
+          college,
+          startMonth,
+          endMonth
+        },
+        user
+      }
+    }
+
+    // runs the aggregators function with message given and will return the response to the caller
+    aggregator.get(message, function (err, data) {
+      if (err) {
+        debug(err + err.stack)
+        res.statusCode = err.statusCode || 500
+        res.end(JSON.stringify({statusCode: res.statusCode, message: 'Error in service!', details: err}))
+        return
+      }
+      debug(data)
+      res.json(data)
+    })
+  } else {
+    res.end('Sorry, incorrect URL')
+  }
+}
 
 const pruneUndefined = (o) => {
-  return Object.keys(o).reduce( (n, k) => {
-    if(typeof o[k] !== 'undefined') {
-      n[k] = o[k];
+  return Object.keys(o).reduce((n, k) => {
+    if (typeof o[k] !== 'undefined') {
+      n[k] = o[k]
     }
-    return n;
-  }, {});
-};
+    return n
+  }, {})
+}
 
-const put = function(req, res) {
-    const key = req.params.key;
-    if (!key) {
-        res.end('Sorry, incorrect URL');
+const put = function (req, res) {
+  const key = req.params.key
+  if (!key) {
+    return res.end('Sorry, incorrect URL')
+  }
+  const user = req.byu.user
+
+  const [applicantId, college, startMonth, endMonth] = key.split(',')
+  const body = req.body
+  const payload = Object.assign({}, body, pruneUndefined({applicantId, college, startMonth, endMonth}))
+  const {errors, valid} = validator(payload)
+  if (!valid) {
+    const errMessage = {
+      message: 'Invalid request parameter(s)!',
+      details: errors.map(e => ({recieved: e.instance, error: e.stack}))
     }
-    const user = req.byu.user;
+    debug('Error in validation: ' + errMessage)
+    return res.status(400).json(errMessage)
+  }
 
-    const [applicant_id, college, start_month, end_month] = key.split(',');
-    const body = req.body;
-    const payload = Object.assign({}, body, pruneUndefined({applicant_id, college, start_month, end_month}));
-    const {errors, valid} = validator(payload);
-    if(!valid) {
-        const errMessage = {
-            message: 'Invalid request parameter(s)!',
-            details: errors.map(e => ({recieved: e.instance, error: e.stack}))
-        };
-        console.error('Error in validation: ', errMessage);
-        return res.status(400).json(errMessage);
+  // creates a message to aggregate with that listening lambdas will understand
+  const message = {
+    request: 'store',
+    parameters: {
+      key: {
+        applicantId,
+        college,
+        startMonth,
+        endMonth
+      },
+      payload,
+      user
+    }
+  }
+
+  // runs the aggregators function with the given message and return response to caller
+  aggregator.put(message, function (err, data) {
+    if (err) {
+      debug(err + err.stack)
+      const statusCode = err.statusCode || 500
+      return res.status(statusCode).json({statusCode, message: 'Error in service!', details: err})
+    }
+    debug(data)
+    res.json(data)
+  })
+}
+
+// function that will run when user makes a delete request
+const del = function (req, res) {
+  if (req.params.key) {
+    const parts = req.params.key.split(',')
+    const [applicantId, college, startMonth, endMonth] = parts
+
+    const {errors, valid} = validateFullKey({applicantId, college, startMonth, endMonth})
+    if (!valid) {
+      const errMessage = {
+        message: 'Invalid request parameter(s)!',
+        details: errors.map(e => ({recieved: e.instance, error: e.stack}))
+      }
+      debug('Error in validation: ' + errMessage)
+      return res.status(400).json(errMessage)
     }
 
-    //creates a message to aggregate with that listening lambdas will understand
+    const user = req.byu.user
+
+    // creates a message to aggregate with that listening lambdas will understand
     const message = {
-        request: 'store',
-        parameters: {
-            key: {
-                applicant_id,
-                college,
-                start_month,
-                end_month
-            },
-            payload,
-            user
-        }
-    };
-
-    //runs the aggregators function with message given and will display response to the browser window
-    aggregator.put(message, function(err, data) {
-        if(err) {
-            console.error(err, err.stack);
-            res.statusCode = err.statusCode || 500;
-            res.json({statusCode: res.statusCode, message: 'Error in service!', details: err});
-            return;
-        }
-        console.log(data);
-        res.json(data);
-    });
-};
-
-//function that will run when user makes a delete request
-const del = function(req, res) {
-    if (req.params.key) {
-        const parts = req.params.key.split(',');
-        const [applicant_id, college, start_month, end_month] = parts;
-
-        const v = validateFullKey({applicant_id, college, start_month, end_month});
-
-        const user = req.byu.user;
-
-        //creates a message to aggregate with that listening lambdas will understand
-        const message = {
-            request: 'remove',
-            parameters: {
-                key: {
-                    applicant_id,
-                    college,
-                    start_month,
-                    end_month
-                },
-                user
-            },
-        };
-
-        //runs the aggregators function with message given and will display response to the browser window
-        aggregator.del(message, function(err, data) {
-            if(err) {
-                console.error(err, err.stack);
-                res.statusCode = err.statusCode || 500;
-                res.end(JSON.stringify({statusCode: res.statusCode, message: 'Error in service!', details: err}));
-                return;
-            }
-                console.log(data);
-                res.json(data);
-            });
-    } else {
-        res.end('Sorry, incorrect URL');
+      request: 'remove',
+      parameters: {
+        key: {
+          applicantId,
+          college,
+          startMonth,
+          endMonth
+        },
+        user
+      }
     }
 
-};
+    // runs the aggregators function with the given message and return response to caller
+    aggregator.del(message, function (err, data) {
+      if (err) {
+        debug(err + err.stack)
+        const statusCode = err.statusCode || 500
+        return res.status(statusCode).end(JSON.stringify({statusCode, message: 'Error in service!', details: err}))
+      }
+      debug(data)
+      res.json(data)
+    })
+  } else {
+    res.end('Sorry, incorrect URL')
+  }
+}
 
-//will respond back with the options usable for the basic level requests
-var options = function(req,res) {
-    res.end('Methods: GET, PUT, DELETE, OPTIONS');
-};
+// will respond back with the options usable for the basic level requests
+var options = function (req, res) {
+  res.end('Methods: GET, PUT, DELETE, OPTIONS')
+}
 
-//when user makes a get request to / will run aggregate function
-app.get('/:key', authorization, get);
-app.put('/:key', authorization, put);
-app.delete('/:key', authorization, del);
-app.options('/:key', options);
+app.get('/', (req, res) => {
+  res.json({health: '100%'})
+})
+
+// when user makes a get request to / will run aggregate function
+app.get('/:key', authorization, get)
+app.put('/:key', authorization, put)
+app.delete('/:key', authorization, del)
+app.options('/:key', options)
 
 // start the server listening on port 3000 or the current environment's port
-app.listen(process.env.PORT || 3000, function() {
-    console.log('The beginning');
-});
-
+app.listen(process.env.PORT || 3000, function () {
+  debug('The beginning')
+})
