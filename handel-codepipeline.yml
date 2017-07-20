@@ -1,0 +1,19 @@
+version: 1
+
+name: hs-transcript
+
+pipelines:
+  dev:
+    phases:
+    - type: github
+      name: GitHub
+      owner: byu-oit
+      repo: shared-admit-hs-transcript
+      branch: master
+    - type: codebuild
+      name: Build
+      build_image: aws/codebuild/nodejs:7.0.0
+    - type: handel
+      name: DevDeploy
+      environments_to_deploy:
+        - dev

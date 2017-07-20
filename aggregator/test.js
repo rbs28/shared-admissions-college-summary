@@ -54,6 +54,47 @@ const otherPropsValid = {
   date_time_verified: '2017-02-03T14:31:21.04Z'
 };
 
+const courseListPropsValid = {
+  completed_course_list: [
+    {
+      year_term: '20101',
+      department: 'English',
+      course: '101',
+      course_title: 'Intro to writing',
+      grade: 'A',
+      credits: 3,
+      upper_or_lower_division: 'L',
+      basic_or_elective: 'B',
+      semester_or_quarter: 'S'
+    }
+  ]
+};
+
+const courseListPropsInvalid = {
+  completed_course_list: [
+    {
+      year_term: '2010-1',
+      department: 'English',
+      course: '101',
+      course_title: 'Intro to writing',
+      grade: 'A',
+      credits: '14',
+      upper_or_lower_division: 'R',
+      basic_or_elective: 'Q',
+      semester_or_quarter: 'B'
+    }
+  ]
+};
+
+const courseListPropsIncomplete = {
+  completed_course_list: [
+    {
+      department: 'English',
+      course: '101',
+    }
+  ]
+};
+
 const validStartEndMonth = () => testFn(true, baseProps, monthPropsValid);
 
 const invalidStartEndMonth = () => testFn(false, baseProps, monthPropsInvalid);
@@ -72,6 +113,10 @@ const invalidHours2 = () => testFn(false, baseProps, monthPropsValid, otherProps
 const notEnoughProps = () => testFn(false, otherPropsValid);
 
 const extraProps = () => testFn(false, baseProps, monthPropsValid, otherPropsValid, {updated_by_id: 'shouldNotBeSpecified'});
+
+const validCourses = () => testFn(true, baseProps, monthPropsValid, courseListPropsValid);
+const invalidCourses = () => testFn(false, baseProps, monthPropsValid, courseListPropsInvalid);
+const incompleteCourses = () => testFn(false, baseProps, monthPropsValid, courseListPropsIncomplete);
 
 const validPartialKey = () => testKeyFn(true, baseProps);
 const validFullKey = () => testFullKeyFn(true, baseProps, monthPropsValid);
@@ -92,6 +137,9 @@ const runAllTests = () => {
     invalidHours2,
     notEnoughProps,
     extraProps,
+    validCourses,
+    invalidCourses,
+    incompleteCourses,
     validPartialKey,
     validFullKey,
     invalidFullKey,

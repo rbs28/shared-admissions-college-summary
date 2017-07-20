@@ -10,10 +10,10 @@
   },
   "author": "",
   "dependencies": {
-    "aws-scatter-gather": "byu-oit-appdev/aws-scatter-gather",
-    "body-parser": "^1.16.0",
+    "aws-scatter-gather": "github:byu-oit-appdev/aws-scatter-gather",
+    "body-parser": "^1.17.2",
     "byu-jwt": "^0.1.3",
-    "express": "^4.14.0",
+    "express": "^4.15.3",
     "jsonschema": "^1.1.1"
   }
 }

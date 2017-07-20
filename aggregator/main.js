@@ -148,7 +148,7 @@ const put = function(req, res) {
     });
 };
 
-//function that will run when user makes a basic get request
+//function that will run when user makes a delete request
 const del = function(req, res) {
     if (req.params.key) {
         const parts = req.params.key.split(',');

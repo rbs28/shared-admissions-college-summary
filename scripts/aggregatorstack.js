@@ -20,12 +20,8 @@ const parms = [
     ParameterValue: 'SharedAdmissionsCollegeSummaryApplicationStack'
   },
   {
-    ParameterKey: 'SSLCertificatePath',
-    ParameterValue: config.sslCertificatePath
-  },
-  {
-    ParameterKey: 'SSLCertificateName',
-    ParameterValue: config.sslCertificateName
+    ParameterKey: 'SSLCertificateArn',
+    ParameterValue: config.sslCertificateArn
   }
 ];
 

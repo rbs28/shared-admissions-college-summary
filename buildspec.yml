@@ -1,0 +1,19 @@
+version: 0.2
+
+phases:
+  pre_build:
+    commands:
+    - echo Installing npm dependencies
+    - npm --prefix ./responders/fromCache install ./responders/fromCache
+    - npm --prefix ./responders/fromAIM install ./responders/fromAIM
+    - npm --prefix ./aggregator install ./aggregator
+  build:
+    commands:
+    - echo Building
+  post_build:
+    commands:
+    - echo Build completed on `date`
+
+artifacts:
+  files:
+  - ./**/*

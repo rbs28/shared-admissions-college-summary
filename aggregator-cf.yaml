@@ -35,6 +35,7 @@ Parameters:
   SSLCertificateName:
     Description: "Name of uploaded certificate"
     Type: "String"
+    Default: ""
 
 Resources: 
   EBInstanceProfile:
@@ -100,7 +101,7 @@ Resources:
         Value: "HTTPS"
       - Namespace: "aws:elb:listener:443"
         OptionName: "SSLCertificateId"
-        Value: !Join [ "", [ "arn:aws:iam::", !Ref "AWS::AccountId", ":server-certificate", !Ref SSLCertificatePath, !Ref SSLCertificateName ]]
+        Value: !Ref SSLCertificateArn
       - Namespace: "aws:elb:listener:443"
         OptionName: "InstancePort"
         Value: "80"

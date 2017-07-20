@@ -1,0 +1,77 @@
+version: 1
+
+name: hs-transcript
+
+environments:
+  dev:
+    CacheTable:
+      type: dynamodb
+      partition_key:
+        name: "ApplicantId"
+        type: String
+      provisioned_throughput:
+        read_capcity_units: 4
+        write_capacity_units: 4
+      tags:
+        domain: shared-admissions
+    CacheAccessTable:
+      type: dynamodb
+      partition_key:
+        name: "CallerId"
+        type: String
+      provisioned_throughput:
+        read_capcity_units: 4
+        write_capacity_units: 4
+    CacheLambda:
+      type: lambda
+      dependencies:
+        - CacheTable
+        - CacheAccessTable
+        - ResponseTopic
+      path_to_code: ./responders/fromCache/
+      handler: "index.handler"
+      runtime: "nodejs6.10"
+      timeout: 300
+      tags:
+        domain: shared-admissions
+    AIMLambda:
+      type: lambda
+      dependencies:
+        - CacheTopic
+        - ResponseTopic
+      path_to_code: ./responders/fromAIM/
+      handler: "index.handler"
+      runtime: "nodejs6.10"
+      timeout: 300
+      tags:
+        domain: shared-admissions
+    ResponseTopic:
+      type: sns
+    RequestTopic:
+      type: sns
+      event_consumers:
+        - service_name: CacheLambda
+        - service_name: AIMLambda
+    CacheTopic:
+      type: sns
+      event_consumers:
+        - service_name: CacheLambda
+    Aggregator:
+      type: beanstalk
+      dependencies:
+        - ResponseTopic
+        - RequestTopic
+      path_to_code: ./aggregator/
+      solution_stack: 64bit Amazon Linux 2017.03 v4.2.0 running Node.js
+      key_name: ajr56
+      instance_type: t2.micro
+      health_check_url: /
+      min_instances: 1
+      max_instances: 2
+      routing:
+        type: https
+        https_certificate: c4a82252-b609-4f7c-aae8-83777377a0fd
+      environment_variables:
+        API_URL: https://hs-transcript.sim-dev.byu.edu
+        DEBUG: "*"
+        PORT: 3000

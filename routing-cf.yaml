@@ -28,6 +28,6 @@ Resources:
         EvaluateTargetHealth: false
         HostedZoneId: "Z38NKT9BP95V3O"
       HostedZoneId: "Z1DLJKPB1QS06V"
-      Name: "college-summary.stage.sim.appdev.byu.edu."
+      Name: "college-summary.provisioningdev.byu.edu."
       Type: "A"
 
