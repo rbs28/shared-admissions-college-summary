@@ -42,12 +42,14 @@ const updateRecord = (dep, cb) => {
 const writeUpdatedRecord = (dep, cb) => {
   const data = dep.updateRecord
   console.log('writing/deleting data in dynamodb\n', data)
-  const {applicantId, tableName} = dep.injectParameters
+  const {applicantId, tableName, byuId} = dep.injectParameters
   if (data.length > 0) {
     const params = {
       Item: {
         ApplicantId: applicantId,
-        SummaryList: data
+        SummaryList: data,
+        dateTimeUpdated: new Date().getJSON(),
+        updatedById: byuId
       },
       TableName: process.env.TABLE_NAME
     }
@@ -56,7 +58,7 @@ const writeUpdatedRecord = (dep, cb) => {
     const params = {
       TableName: tableName,
       Key: {
-        Id: applicantId
+        ApplicantId: applicantId
       }
     }
     return dynamo.deleteItem(params, cb)
@@ -65,9 +67,10 @@ const writeUpdatedRecord = (dep, cb) => {
 
 module.exports = function (parameters, done) {
   const {applicantId, college, startMonth, endMonth} = parameters.key
+  const {byuId} = parameters.user
   const tableName = util.getVariable('dynamodb', 'SummaryTable', 'TABLE_NAME')
 
-  const injectParameters = cb => cb(null, {applicantId, college, startMonth, endMonth, tableName})
+  const injectParameters = cb => cb(null, {applicantId, college, startMonth, endMonth, tableName, byuId})
 
   async.auto({
     injectParameters,
