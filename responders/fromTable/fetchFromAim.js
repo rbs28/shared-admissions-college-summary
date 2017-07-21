@@ -14,7 +14,7 @@ module.exports = (parms, cb) => {
     getSecureParameters (cb) {
       // Retrieve WSO2 credentials from the AWS Parameter Store
       util.fetchParameters(AWS,
-        [`AimApiUrl`, `oauth.key`, `oauth.secret`, `oauth.accessTokenUri`, `oauth.authorizationUrl`]
+        [`AimApiUrl`, `oauth.key`, `oauth.secret`, `oauth.accessTokenUri`, `oauth.authorizationUri`]
       ).then(data => cb(null, data)).catch(err => cb(err))
     },
     oauth (getSecureParameters, cb) {
