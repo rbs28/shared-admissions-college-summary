@@ -5,7 +5,6 @@ phases:
     commands:
     - echo Installing npm dependencies
     - npm --prefix ./responders/fromTable install ./responders/fromTable
-    - npm --prefix ./responders/fromAIM install ./responders/fromAIM
     - npm --prefix ./aggregator install ./aggregator
   build:
     commands:
