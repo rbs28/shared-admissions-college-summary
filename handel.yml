@@ -4,7 +4,7 @@ name: hs-transcript
 
 environments:
   dev:
-    CacheTable:
+    SummaryTable:
       type: dynamodb
       partition_key:
         name: "ApplicantId"
@@ -14,32 +14,12 @@ environments:
         write_capacity_units: 4
       tags:
         domain: shared-admissions
-    CacheAccessTable:
-      type: dynamodb
-      partition_key:
-        name: "CallerId"
-        type: String
-      provisioned_throughput:
-        read_capcity_units: 4
-        write_capacity_units: 4
-    CacheLambda:
+    SummaryLambda:
       type: lambda
       dependencies:
-        - CacheTable
-        - CacheAccessTable
+        - SummaryTable
         - ResponseTopic
-      path_to_code: ./responders/fromCache/
-      handler: "index.handler"
-      runtime: "nodejs6.10"
-      timeout: 300
-      tags:
-        domain: shared-admissions
-    AIMLambda:
-      type: lambda
-      dependencies:
-        - CacheTopic
-        - ResponseTopic
-      path_to_code: ./responders/fromAIM/
+      path_to_code: ./responders/fromTable/
       handler: "index.handler"
       runtime: "nodejs6.10"
       timeout: 300
@@ -50,12 +30,7 @@ environments:
     RequestTopic:
       type: sns
       event_consumers:
-        - service_name: CacheLambda
-        - service_name: AIMLambda
-    CacheTopic:
-      type: sns
-      event_consumers:
-        - service_name: CacheLambda
+        - service_name: SummaryLambda
     Aggregator:
       type: beanstalk
       dependencies:
@@ -72,6 +47,6 @@ environments:
         type: https
         https_certificate: c4a82252-b609-4f7c-aae8-83777377a0fd
       environment_variables:
-        API_URL: https://hs-transcript.sim-dev.byu.edu
+        API_URL: https://college-summary.sim-dev.byu.edu
         DEBUG: "*"
         PORT: 3000

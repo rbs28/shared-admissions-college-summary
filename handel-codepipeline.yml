@@ -1,6 +1,6 @@
 version: 1
 
-name: hs-transcript
+name: college-summary
 
 pipelines:
   dev:
@@ -8,7 +8,7 @@ pipelines:
     - type: github
       name: GitHub
       owner: byu-oit
-      repo: shared-admit-hs-transcript
+      repo: shared-admissions-college-summary
       branch: master
     - type: codebuild
       name: Build

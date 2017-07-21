@@ -4,7 +4,7 @@ phases:
   pre_build:
     commands:
     - echo Installing npm dependencies
-    - npm --prefix ./responders/fromCache install ./responders/fromCache
+    - npm --prefix ./responders/fromTable install ./responders/fromTable
     - npm --prefix ./responders/fromAIM install ./responders/fromAIM
     - npm --prefix ./aggregator install ./aggregator
   build:

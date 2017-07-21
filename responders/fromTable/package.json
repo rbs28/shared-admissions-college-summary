@@ -8,8 +8,11 @@
   },
   "dependencies": {
     "async": "^2.5.0",
-    "aws-scatter-gather": "github:byu-oit-appdev/aws-scatter-gather",
+    "aws-scatter-gather": "^3.2.0",
+    "client-oauth2": "^4.1.0",
     "dynamo-doc": "^0.1.1",
-    "dynamodb-doc": "^1.0.0"
+    "dynamodb-doc": "^1.0.0",
+    "handel-utils": "^1.1.1",
+    "request": "^2.81.0"
   }
 }
