@@ -17,7 +17,7 @@
 'use strict'
 const AWS = require('aws-sdk')
 const Scather = require('aws-scatter-gather')
-const config = require('./config.json')
+const util = require('handel-utils')
 
 AWS.config.update({region: 'us-west-2'})
 
@@ -35,8 +35,8 @@ exports.get = Scather.aggregator({
   expects: ['TableResponder'],
   maxWait: 5000,
   minWait: 0,
-  responseArn: config.ResponseTopic.arn,
-  topicArn: config.RequestTopic.arn,
+  responseArn: util.getVariable('sns', 'ResponseTopic', 'topic_arn'),
+  topicArn: util.getVariable('sns', 'RequestTopic', 'topic_arn'),
   sns: SNS
 })
 
@@ -51,8 +51,8 @@ exports.put = Scather.aggregator({
   expects: ['TableResponder'],
   maxWait: 10000,
   minWait: 0,
-  responseArn: config.ResponseTopic.arn,
-  topicArn: config.RequestTopic.arn,
+  responseArn: util.getVariable('sns', 'ResponseTopic', 'topic_arn'),
+  topicArn: util.getVariable('sns', 'RequestTopic', 'topic_arn'),
   sns: SNS
 })
 
@@ -67,7 +67,7 @@ exports.del = Scather.aggregator({
   expects: ['TableResponder'],
   maxWait: 10000,
   minWait: 0,
-  responseArn: config.ResponseTopic.arn,
-  topicArn: config.RequestTopic.arn,
+  responseArn: util.getVariable('sns', 'ResponseTopic', 'topic_arn'),
+  topicArn: util.getVariable('sns', 'RequestTopic', 'topic_arn'),
   sns: SNS
 })
