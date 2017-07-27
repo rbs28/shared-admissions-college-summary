@@ -2,6 +2,7 @@ const doc = require('dynamodb-doc')
 const dynamo = new doc.DynamoDB()
 const async = require('async')
 const util = require('handel-utils')
+const _ = require('lodash')
 
 const fetchFromTable = (dep, cb) => {
   const {applicantId, tableName} = dep.injectParameters
@@ -22,7 +23,7 @@ const updateRecord = (dep, cb) => {
   console.log('Here is the return from the retrieve function' + JSON.stringify(data, null, 2))
   try {
     const result = (data.Item && data.Item.SummaryList) ? data.Item.SummaryList : []
-    const indexToReplace = result.findIndex(s => s.college === college && s.startMonth === startMonth && s.endMonth === endMonth)
+    const indexToReplace = result.findIndex(s => s.college === college && s.start_month === startMonth && s.end_month === endMonth)
     if (indexToReplace < 0) {
       // append to end of list
       return cb(null, result.concat([newRecord]))
@@ -45,8 +46,8 @@ const writeUpdatedRecord = (dep, cb) => {
     Item: {
       ApplicantId: applicantId,
       SummaryList: data,
-      updatedById: userId,
-      dateTimeUpdated: new Date().toJSON()
+      UpdatedById: userId,
+      DateTimeUpdated: new Date().toJSON()
     },
     TableName: tableName
   }
@@ -54,7 +55,7 @@ const writeUpdatedRecord = (dep, cb) => {
 }
 
 module.exports = function (parameters, done) {
-  const {applicantId, college, startMonth, endMonth} = Object.assign({}, parameters.payload, parameters.key)
+  const {applicant_id: applicantId, college, start_month: startMonth, end_month: endMonth} = parameters.payload
   const payload = parameters.payload
   const {byuId: userId} = parameters.user
   const tableName = util.getVariable('dynamodb', 'SummaryTable', 'TABLE_NAME')

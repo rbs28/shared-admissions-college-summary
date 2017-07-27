@@ -60,8 +60,8 @@ module.exports = (parms, cb) => {
         Item: {
           ApplicantId: applicantId,
           SummaryList: parseApi,
-          updatedById: callerNetId,
-          dateTimeUpdated: new Date().toJSON()
+          UpdatedById: callerNetId,
+          DateTimeUpdated: new Date().toJSON()
         },
         TableName: tableName
       }

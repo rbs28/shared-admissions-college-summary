@@ -22,7 +22,7 @@ const updateRecord = (dep, cb) => {
   try {
     if (Item && Item.SummaryList) {
       const result = Item.SummaryList
-      const indexToRemove = result.findIndex(s => s.college === college && s.startMonth === startMonth && s.endMonth === endMonth)
+      const indexToRemove = result.findIndex(s => s.college === college && s.start_month === startMonth && s.end_month === endMonth)
       if (indexToRemove < 0) {
         // record not found
         return cb(new Error('Record not found'))
@@ -48,8 +48,8 @@ const writeUpdatedRecord = (dep, cb) => {
       Item: {
         ApplicantId: applicantId,
         SummaryList: data,
-        dateTimeUpdated: new Date().getJSON(),
-        updatedById: byuId
+        DateTimeUpdated: new Date().getJSON(),
+        UpdatedById: byuId
       },
       TableName: process.env.TABLE_NAME
     }

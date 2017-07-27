@@ -57,7 +57,12 @@ const get = function (req, res) {
     const parts = req.params.key.split(',')
     const [applicantId, college, startMonth, endMonth] = parts
 
-    const {errors, valid} = validateKey({applicantId, college, startMonth, endMonth})
+    const {errors, valid} = validateKey({
+      applicant_id: applicantId,
+      college,
+      start_month: startMonth,
+      end_month: endMonth
+    })
     if (!valid) {
       const errMessage = {
         message: 'Invalid request parameter(s)!',
@@ -117,7 +122,12 @@ const put = function (req, res) {
 
   const [applicantId, college, startMonth, endMonth] = key.split(',')
   const body = req.body
-  const payload = Object.assign({}, body, pruneUndefined({applicantId, college, startMonth, endMonth}))
+  const payload = Object.assign({}, body, pruneUndefined({
+    applicant_id: applicantId,
+    college,
+    start_month: startMonth,
+    end_month: endMonth
+  }))
   const {errors, valid} = validator(payload)
   if (!valid) {
     const errMessage = {
@@ -161,7 +171,12 @@ const del = function (req, res) {
     const parts = req.params.key.split(',')
     const [applicantId, college, startMonth, endMonth] = parts
 
-    const {errors, valid} = validateFullKey({applicantId, college, startMonth, endMonth})
+    const {errors, valid} = validateFullKey({
+      applicant_id: applicantId,
+      college,
+      start_month: startMonth,
+      end_month: endMonth
+    })
     if (!valid) {
       const errMessage = {
         message: 'Invalid request parameter(s)!',

@@ -29,7 +29,7 @@ module.exports = function (parameters, done) {
             result = result.filter(s => s.college === college)
           }
           if (startMonth && endMonth) {
-            result = result.filter(s => s.startMonth === startMonth && s.endMonth === endMonth)
+            result = result.filter(s => s.start_month === startMonth && s.end_month === endMonth)
           }
           cb(null, result)
         } catch (err) {
