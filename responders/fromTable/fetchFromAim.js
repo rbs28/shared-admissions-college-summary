@@ -41,6 +41,7 @@ module.exports = (parms, cb) => {
       request.get(options, (err, response, data) => {
         const {statusCode} = response
         if (statusCode !== 200) {
+          console.error(`HTTP Error ${response.statusCode} from AIM API`)
           return cb(new Error(`HTTP Error calling AIM API: statusCode ${statusCode}`))
         }
         cb(err, data)

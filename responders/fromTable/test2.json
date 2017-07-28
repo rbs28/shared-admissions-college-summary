@@ -1,0 +1,18 @@
+{
+    "StdTransferWorkService": {
+        "request": {
+            "method": "GET",
+            "resource": "/json/netid/ajr56",
+            "attributes": null,
+            "status": 200,
+            "statusMessage": "Service request is OK and a response has been generated."
+        },
+        "response": {
+            "person_id": "727204752",
+            "byu_id": "650161333",
+            "net_id": "ajr56",
+            "student_name": "Rasmussen, Aaron J",
+            "college_list": []
+        }
+    }
+}

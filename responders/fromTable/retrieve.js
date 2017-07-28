@@ -42,7 +42,7 @@ module.exports = function (parameters, done) {
         // no self-entered college data, check AIM
         fetchFromAim({applicantId, college, startMonth, endMonth, callerNetId, tableName}, (err, list) => {
           if (err) {
-            return cb(new Error('Error fetching AIM API!\n' + err))
+            return cb(null, {})
           }
           filter(list)
         })
