@@ -44,9 +44,8 @@ environments:
       min_instances: 1
       max_instances: 2
       routing:
-        type: http
-        #type: https
-        #https_certificate: c4a82252-b609-4f7c-aae8-83777377a0fd
+        type: https
+        https_certificate: c4a82252-b609-4f7c-aae8-83777377a0fd
       environment_variables:
         API_URL: https://college-summary.sim-dev.byu.edu
         DEBUG: "*"
