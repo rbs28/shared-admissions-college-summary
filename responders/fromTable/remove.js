@@ -84,6 +84,6 @@ module.exports = function (parameters, done) {
       return done({'message': errMessage, 'details': err})
     }
 
-    done(null, data)
+    done(null, data.updateRecord)
   })
 }

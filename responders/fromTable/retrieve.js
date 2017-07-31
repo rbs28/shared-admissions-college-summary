@@ -57,7 +57,7 @@ module.exports = function (parameters, done) {
       return done({'message': errMessage, 'details': err})
     }
 
-    console.log('Return from retrieve:\n', results)
-    done(null, results)
+    console.log('Return from retrieve:\n', results.filterResults)
+    done(null, results.filterResults)
   })
 }
