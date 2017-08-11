@@ -19,8 +19,9 @@ module.exports = function (req, res, next) {
     }
     const userId = req.byu.user.byuId
 
-    if (userId === '650161333') {
-      debug('Allow author for testing')
+    if (userId === '650161333' || userId === '968006082') {
+      debug('Allow author for testing')a
+      debug('Randall added the check for userId === \'968006082\' which is the saasbizsv user id');
       return next()
     }
 
